@@ -1,12 +1,46 @@
 import { useParams, Link, Navigate } from "react-router";
-import { Calendar, Clock, User, ArrowLeft, Share2 } from "lucide-react";
-import { blogPosts } from "../data/blogPosts";
+import { useEffect, useState } from "react";
+import { Calendar, User, ArrowLeft, Share2 } from "lucide-react";
+import { getArticleBySlug, getAllArticles, Article } from "../lib/articles";
 
 export default function BlogPost() {
-  const { id } = useParams();
-  const post = blogPosts.find((p) => p.id === id);
+  const { slug } = useParams();
+  const [post, setPost] = useState<Article | undefined>(undefined);
+  const [relatedPosts, setRelatedPosts] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!post) {
+  useEffect(() => {
+    if (!slug) return;
+    (async () => {
+      setLoading(true);
+      const p = await getArticleBySlug(slug);
+      if (p) {
+        setPost(p);
+        const all = await getAllArticles();
+        setRelatedPosts(all.filter((a) => a.slug !== p.slug && a.category === p.category).slice(0, 3));
+      }
+      setLoading(false);
+    })();
+  }, [slug]);
+
+  // Dynamically load react-markdown only if available to avoid module-not-found
+  const [ReactMarkdownComponent, setReactMarkdownComponent] = useState<any>(null);
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const mod = await import("react-markdown");
+        if (mounted) setReactMarkdownComponent(() => mod.default || mod);
+      } catch (e) {
+        // react-markdown not installed — we'll fallback to plain rendering
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!loading && !post) {
     return <Navigate to="/publications" replace />;
   }
 
@@ -18,10 +52,6 @@ export default function BlogPost() {
       day: "numeric",
     });
   };
-
-  const relatedPosts = blogPosts
-    .filter((p) => p.id !== post.id && p.category === post.category)
-    .slice(0, 3);
 
   return (
     <div>
@@ -38,101 +68,58 @@ export default function BlogPost() {
 
           <div className="mb-6">
             <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-sm font-medium">
-              {post.category}
+              {post?.category}
             </span>
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            {post.title}
+            {post?.title}
           </h1>
 
           <div className="flex flex-wrap items-center gap-6 text-blue-100">
             <div className="flex items-center gap-2">
               <User className="h-5 w-5" />
-              <span>{post.author}</span>
+              <span>{post?.author}</span>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              <span>{formatDate(post.date)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              <span>{post.readTime}</span>
+              <span>{post ? formatDate(post.date) : ""}</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* Featured Image */}
-      <section className="bg-gray-100">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 -mt-8">
-          <img
-            src={post.imageUrl}
-            alt={post.title}
-            className="w-full h-[400px] object-cover rounded-lg shadow-xl"
-          />
-        </div>
-      </section>
+      {post?.imageUrl && (
+        <section className="bg-gray-100">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 -mt-8">
+            <img
+              src={post.imageUrl}
+              alt={post.title}
+              className="w-full h-[400px] object-cover rounded-lg shadow-xl"
+            />
+          </div>
+        </section>
+      )}
 
       {/* Content */}
       <article className="py-16 bg-white">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           {/* Lead */}
           <p className="text-xl text-gray-700 mb-8 leading-relaxed">
-            {post.excerpt}
+            {post?.excerpt}
           </p>
 
           {/* Main Content */}
           <div className="prose prose-lg max-w-none">
-            {post.content.split("\n\n").map((paragraph, index) => {
-              // Handle headings
-              if (paragraph.startsWith("## ")) {
-                return (
-                  <h2 key={index} className="text-3xl font-bold text-gray-900 mt-12 mb-6">
-                    {paragraph.replace("## ", "")}
-                  </h2>
-                );
-              }
-              if (paragraph.startsWith("### ")) {
-                return (
-                  <h3 key={index} className="text-2xl font-bold text-gray-900 mt-8 mb-4">
-                    {paragraph.replace("### ", "")}
-                  </h3>
-                );
-              }
-              // Handle list items
-              if (paragraph.startsWith("- ")) {
-                const items = paragraph.split("\n");
-                return (
-                  <ul key={index} className="list-disc pl-6 space-y-2 mb-6">
-                    {items.map((item, i) => (
-                      <li key={i} className="text-gray-700">
-                        {item.replace("- ", "").replace(/^\*\*(.+?)\*\*:/, "<strong>$1:</strong>")}
-                      </li>
-                    ))}
-                  </ul>
-                );
-              }
-              // Handle numbered lists
-              if (/^\d+\.\s/.test(paragraph)) {
-                const items = paragraph.split("\n");
-                return (
-                  <ol key={index} className="list-decimal pl-6 space-y-2 mb-6">
-                    {items.map((item, i) => (
-                      <li key={i} className="text-gray-700">
-                        {item.replace(/^\d+\.\s/, "")}
-                      </li>
-                    ))}
-                  </ol>
-                );
-              }
-              // Regular paragraphs
-              return (
-                <p key={index} className="text-gray-700 mb-6 leading-relaxed">
-                  {paragraph}
-                </p>
-              );
-            })}
+            {post && ReactMarkdownComponent ? (
+              <ReactMarkdownComponent>{post.content}</ReactMarkdownComponent>
+            ) : post ? (
+              // Fallback: simple paragraph rendering when react-markdown is unavailable
+              post.content.split(/\n\n+/).map((para, i) => (
+                <p key={i} className="text-gray-700 mb-6 leading-relaxed">{para}</p>
+              ))
+            ) : null}
           </div>
 
           {/* Share Section */}
@@ -161,11 +148,11 @@ export default function BlogPost() {
               </div>
               <div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                  {post.author}
+                  {post?.author}
                 </h4>
                 <p className="text-gray-600">
-                  {post.author} is a partner at LegalEdge, specializing in {post.category.toLowerCase()}. 
-                  With years of experience advising businesses on complex legal matters, {post.author.split(" ")[0]} 
+                  {post?.author} is a partner at LegalEdge, specializing in {post?.category?.toLowerCase()}. 
+                  With years of experience advising businesses on complex legal matters, {post?.author?.split(" ")[0]} 
                   brings deep expertise and practical insights to every engagement.
                 </p>
               </div>
@@ -184,14 +171,16 @@ export default function BlogPost() {
             <div className="grid md:grid-cols-3 gap-8">
               {relatedPosts.map((relatedPost) => (
                 <article
-                  key={relatedPost.id}
+                  key={relatedPost.slug}
                   className="bg-gray-50 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                 >
-                  <img
-                    src={relatedPost.imageUrl}
-                    alt={relatedPost.title}
-                    className="w-full h-48 object-cover"
-                  />
+                  {relatedPost.imageUrl && (
+                    <img
+                      src={relatedPost.imageUrl}
+                      alt={relatedPost.title}
+                      className="w-full h-48 object-cover"
+                    />
+                  )}
                   <div className="p-6">
                     <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
                       {relatedPost.category}
@@ -203,7 +192,7 @@ export default function BlogPost() {
                       {relatedPost.excerpt.substring(0, 100)}...
                     </p>
                     <Link
-                      to={`/publications/${relatedPost.id}`}
+                      to={`/publications/${relatedPost.slug}`}
                       className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center"
                     >
                       Read More

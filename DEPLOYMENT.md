@@ -194,5 +194,6 @@ See [GitHub's custom domain documentation](https://docs.github.com/en/pages/conf
 
 - The free tier of GitHub Pages is perfect for this website
 - All content loads instantly since it's compiled into the JavaScript bundle
-- You can add new blog posts by editing `/src/app/data/blogPosts.ts`
+You can add new blog posts by adding Markdown files to `/src/app/content/articles/`.
+Each file should include frontmatter (`title`, `date`, `author`, `excerpt`, `category`, `imageUrl`) followed by the article in Markdown.
 - The website is fully responsive and works on all devices

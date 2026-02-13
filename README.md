@@ -74,7 +74,7 @@ Quick deploy:
 │   │   │   ├── Footer.tsx
 │   │   │   └── Layout.tsx
 │   │   ├── data/          # Static data
-│   │   │   └── blogPosts.ts
+│   │   │   └── content/articles/*.md
 │   │   ├── pages/         # Page components
 │   │   │   ├── Home.tsx
 │   │   │   ├── About.tsx
@@ -94,7 +94,20 @@ Quick deploy:
 
 ### Adding Blog Posts
 
-Edit `/src/app/data/blogPosts.ts` to add new articles:
+Add a new Markdown file under `/src/app/content/articles/` with frontmatter:
+
+```
+---
+title: "Your Article Title"
+date: "2026-02-12"
+author: "Author Name"
+excerpt: "Short excerpt"
+category: "Category"
+imageUrl: "/public/images/your-image.jpg"
+---
+
+Article body in Markdown...
+```
 
 ```typescript
 {

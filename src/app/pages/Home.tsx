@@ -1,7 +1,35 @@
 import { Link } from "react-router";
 import { ArrowRight, Scale, Users, Award, TrendingUp } from "lucide-react";
+import HeroCarousel, { HeroSlide } from "../components/HeroCarousel";
 
 export default function Home() {
+  const heroSlides: HeroSlide[] = [
+    {
+      id: "slide-1",
+      backgroundImage: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBidXNpbmVzcyUyMG9mZmljZXxlbnwxfHx8fDE3NzA4MDcyODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      title: "Expert Legal Counsel for Modern Businesses",
+      subtitle: "Innovative solutions, strategic thinking, and unwavering commitment to your success.",
+      ctaText: "Schedule Consultation",
+      ctaLink: "/contact",
+    },
+    {
+      id: "slide-2",
+      backgroundImage: "https://images.unsplash.com/photo-1552664730-d307ca884978?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHw2fHxtb2Rlcm4lMjBsYXclMjBmaXJtfGVufDF8fHx8MTc3MDgwNzI4OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      title: "Navigate Complex Corporate Challenges",
+      subtitle: "Strategic guidance and innovative solutions for businesses at every stage.",
+      ctaText: "Explore Our Services",
+      ctaLink: "/practice-areas",
+    },
+    {
+      id: "slide-3",
+      backgroundImage: "https://images.unsplash.com/photo-1729346878607-0dfc1295ee5a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBsYXclMjBvZmZpY2UlMjBidWlsZGluZ3xlbnwxfHx8fDE3NzA4MDcyODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      title: "Proven Track Record of Success",
+      subtitle: "Over 15 years of excellence protecting the interests of our valued clients.",
+      ctaText: "Read Our Case Studies",
+      ctaLink: "/publications",
+    },
+  ];
+
   const practiceAreas = [
     {
       title: "Corporate Law",
@@ -34,34 +62,8 @@ export default function Home() {
 
   return (
     <div>
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-900 to-blue-700 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24 md:py-32">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Expert Legal Counsel for Modern Businesses
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 text-blue-100">
-              Innovative solutions, strategic thinking, and unwavering commitment to your success.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                to="/contact"
-                className="inline-flex items-center justify-center px-8 py-3 bg-white text-blue-900 font-semibold rounded-lg hover:bg-blue-50 transition-colors"
-              >
-                Schedule Consultation
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-              <Link
-                to="/about"
-                className="inline-flex items-center justify-center px-8 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white/10 transition-colors"
-              >
-                Learn More
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Hero Carousel */}
+      <HeroCarousel slides={heroSlides} />
 
       {/* Stats Section */}
       <section className="bg-white py-12 border-b">
